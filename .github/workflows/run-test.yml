@@ -1,0 +1,34 @@
+name: Ejecutar Pruebas de Postman con Newman
+
+# El pipeline se disparará automáticamente cada vez que hagas un "git push" a la rama main
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  automation-tests:
+    # Le pedimos a GitHub que nos preste una máquina virtual con Ubuntu actualizado
+    runs-on: ubuntu-latest
+
+    steps:
+      # Paso 1: Clonar el código del repositorio dentro de la máquina virtual
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      # Paso 2: Instalar Node.js en la máquina virtual
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # Paso 3: Instalar Newman de forma global en esa máquina virtual
+      - name: Instalar Newman
+        run: npm install -g newman
+
+      # Paso 4: Ejecutar Newman apuntando a los archivos del repositorio
+      # Al estar en Linux (ubuntu), las rutas usan barras diagonales de la raíz del proyecto
+      - name: Ejecutar Suite de API Tests
+        run: |
+          newman run Booker_API_Tests.postman_collection.json -e QA_Enviorement.postman_environment.json
