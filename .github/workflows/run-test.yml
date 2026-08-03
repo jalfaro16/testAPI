@@ -25,11 +25,22 @@ jobs:
           node-version: '18'
 
       # Paso 3: Instalar Newman de forma global en esa máquina virtual
-      - name: Instalar Newman
-        run: npm install -g newman
+      - name: Instalar Newman y HTML Extra Reporter
+        run: |
+          npm install -g newman
+          npm install -g newman-reporter-htmlextra
 
       # Paso 4: Ejecutar Newman apuntando a los archivos del repositorio
       # Al estar en Linux (ubuntu), las rutas usan barras diagonales de la raíz del proyecto
       - name: Ejecutar Suite de API Tests
         run: |
-          newman run Booker_API_Tests.postman_collection.json -e QA_Enviorement.postman_environment.json
+         newman run Booker_API_Tests.postman_collection.json \
+         -e QA_Enviorement.postman_environment.json \
+         -r cli,htmlextra \
+         --reporter-htmlextra-export newman-report.html
+
+      - name: Subir reporte HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: Newman-HTML-Report
+          path: newman-report.html   
