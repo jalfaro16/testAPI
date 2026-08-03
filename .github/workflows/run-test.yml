@@ -35,13 +35,16 @@ jobs:
       - name: Ejecutar Suite de API Tests
         run: |
          newman run Booker_API_Tests.postman_collection.json \
-         -e QA_Enviorement.postman_environment.json \
-         -r cli,htmlextra \
-         --reporter-htmlextra-export newman-report.html
+          -e QA_Enviorement.postman_environment.json \
+          -r cli,htmlextra,junit \
+          --reporter-htmlextra-export newman-report.html \
+          --reporter-junit-export newman-report.xml
 
-      - name: Subir reporte HTML
+      - name: Subir reportes
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Newman-HTML-Report
-          path: newman-report.html   
+          name: Newman-Reports
+          path: |
+            newman-report.html
+            newman-report.xml
