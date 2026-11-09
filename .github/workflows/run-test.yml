@@ -1,46 +1,54 @@
-name: Ejecutar Pruebas de Postman con Newman
+name: Run Postman Tests with Newman
 
-# El pipeline se disparará automáticamente cada vez que hagas un "git push" a la rama main
+# Trigger the workflow on pushes, pull requests, or manual execution
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+
   workflow_dispatch:
 
 jobs:
   automation-tests:
-    # Le pedimos a GitHub que nos preste una máquina virtual con Ubuntu actualizado
+    # Use the GitHub Environment where secrets and variables are stored
+    environment: dev
+
+    # Use the latest Ubuntu runner
     runs-on: ubuntu-latest
 
     steps:
-      # Paso 1: Clonar el código del repositorio dentro de la máquina virtual
-      - name: Clonar repositorio
+      # Step 1: Checkout the repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Paso 2: Instalar Node.js en la máquina virtual
-      - name: Configurar Node.js
+      # Step 2: Install Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
-      # Paso 3: Instalar Newman de forma global en esa máquina virtual
-      - name: Instalar Newman y HTML Extra Reporter
+      # Step 3: Install Newman and HTML Extra Reporter
+      - name: Install Newman and HTML Extra Reporter
         run: |
           npm install -g newman
           npm install -g newman-reporter-htmlextra
 
-      # Paso 4: Ejecutar Newman apuntando a los archivos del repositorio
-      # Al estar en Linux (ubuntu), las rutas usan barras diagonales de la raíz del proyecto
-      - name: Ejecutar Suite de API Tests
+      # Step 4: Execute the Postman collection
+      - name: Run API Test Suite
         run: |
-         newman run Booker_API_Tests.postman_collection.json \
-          -e QA_Enviorement.postman_environment.json \
-          -r cli,htmlextra,junit \
-          --reporter-htmlextra-export newman-report.html \
-          --reporter-junit-export newman-report.xml
+          newman run Booker_API_Tests.postman_collection.json \
+            -e QA_Enviorement.postman_environment.json \
+            --env-var username="${{ secrets.BOOKER_USERNAME }}" \
+            --env-var password="${{ secrets.BOOKER_PASSWORD }}" \
+            --env-var base_url="${{ vars.BASE_URL }}" \
+            -r cli,htmlextra,junit \
+            --reporter-htmlextra-export newman-report.html \
+            --reporter-junit-export newman-report.xml
 
-      - name: Subir reportes
+      # Step 5: Upload reports even if the tests fail
+      - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4
         with:

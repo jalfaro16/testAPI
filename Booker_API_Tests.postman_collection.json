@@ -15,25 +15,10 @@
             {
               "listen": "test",
               "script": {
-                "exec": [
-                  "// Validar que el servidor responda con éxito\r",
-                  "pm.test(\"Status code es 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "// Extraer el token y guardarlo en el Environment\r",
-                  "const respuesta = pm.response.json();\r",
-                  "\r",
-                  "if (respuesta.token) {\r",
-                  "    pm.environment.set(\"token\", respuesta.token);\r",
-                  "    console.log(\"Token capturado y guardado: \" + respuesta.token);\r",
-                  "} else {\r",
-                  "    pm.designError(\"El campo 'token' no viene en la respuesta. Revisa las credenciales.\");\r",
-                  "}"
-                ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "exec": [
+                  "// Validate that the server responds successfully\r\npm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// Extract the token and save it to the Environment\r\nconst response = pm.response.json();\r\n\r\nif (response.token) {\r\n    pm.environment.set(\"token\", response.token);\r\n    console.log(\"Token captured and saved: \" + response.token);\r\n} else {\r\n    pm.test(\"Token is present in the response\", function () {\r\n        throw new Error(\"The 'token' field is not present in the response. Please verify the credentials.\");\r\n    });\r\n}"
+                ]
               }
             }
           ],
@@ -42,13 +27,12 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
+                "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"username\" : \"admin\",\r\n    \"password\" : \"password123\"\r\n}",
+              "raw": "{\r\n    \"username\" : \"{{username}}\",\r\n    \"password\" : \"{{password}}\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -78,63 +62,10 @@
             {
               "listen": "test",
               "script": {
-                "exec": [
-                  "// --- 1. VALIDACIÓN DE CÓDIGO DE ESTADO ---\r",
-                  "pm.test(\"Status code es 200 - OK\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "// --- 2. VALIDACIÓN DE TIEMPO DE RESPUESTA (SLA) ---\r",
-                  "// Validamos que la API sea rápida. Si tarda más de 800ms, la prueba fallará.\r",
-                  "pm.test(\"El tiempo de respuesta es menor a 800ms\", function () {\r",
-                  "    pm.expect(pm.response.responseTime).to.be.below(800);\r",
-                  "});\r",
-                  "\r",
-                  "// --- 3. VALIDACIÓN DE ESQUEMA JSON (Contract Testing) ---\r",
-                  "// Definimos la estructura exacta que DEBE tener la respuesta.\r",
-                  "const reservaSchema = {\r",
-                  "    \"type\": \"object\",\r",
-                  "    \"required\": [\"bookingid\", \"booking\"],\r",
-                  "    \"properties\": {\r",
-                  "        \"bookingid\": { \"type\": \"number\" },\r",
-                  "        \"booking\": {\r",
-                  "            \"type\": \"object\",\r",
-                  "            \"required\": [\"firstname\", \"lastname\", \"totalprice\", \"depositpaid\", \"bookingdates\"],\r",
-                  "            \"properties\": {\r",
-                  "                \"firstname\": { \"type\": \"string\" },\r",
-                  "                \"lastname\": { \"type\": \"string\" },\r",
-                  "                \"totalprice\": { \"type\": \"number\" },\r",
-                  "                \"depositpaid\": { \"type\": \"boolean\" },\r",
-                  "                \"bookingdates\": {\r",
-                  "                    \"type\": \"object\",\r",
-                  "                    \"required\": [\"checkin\", \"checkout\"],\r",
-                  "                    \"properties\": {\r",
-                  "                        \"checkin\": { \"type\": \"string\" },\r",
-                  "                        \"checkout\": { \"type\": \"string\" }\r",
-                  "                    }\r",
-                  "                },\r",
-                  "                \"additionalneeds\": { \"type\": \"string\" }\r",
-                  "            }\r",
-                  "        }\r",
-                  "    }\r",
-                  "};\r",
-                  "\r",
-                  "// Validamos el contrato usando la librería integrada de Postman\r",
-                  "pm.test(\"El esquema JSON de la respuesta es válido\", function () {\r",
-                  "    pm.response.to.have.jsonSchema(reservaSchema);\r",
-                  "});\r",
-                  "\r",
-                  "\r",
-                  "// --- 4. EXTRACCIÓN DE DATOS (Mantenemos la lógica anterior) ---\r",
-                  "const respuesta = pm.response.json();\r",
-                  "if (respuesta.bookingid) {\r",
-                  "    pm.environment.set(\"booking_id\", respuesta.bookingid);\r",
-                  "    console.log(\"Booking ID guardado con éxito: \" + respuesta.bookingid);\r",
-                  "}"
-                ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "exec": [
+                  "// --- 1. STATUS CODE VALIDATION ---\r\npm.test(\"Status code is 200 - OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// --- 2. RESPONSE TIME VALIDATION (SLA) ---\r\n// Verify that the API responds quickly.\r\n// The test will fail if the response time exceeds 800ms.\r\npm.test(\"Response time is less than 800ms\", function () {\r\n    pm.expect(pm.response.responseTime).to.be.below(800);\r\n});\r\n\r\n// --- 3. JSON SCHEMA VALIDATION (Contract Testing) ---\r\n// Define the expected response structure.\r\nconst bookingSchema = {\r\n    \"type\": \"object\",\r\n    \"required\": [\"bookingid\", \"booking\"],\r\n    \"properties\": {\r\n        \"bookingid\": { \"type\": \"number\" },\r\n        \"booking\": {\r\n            \"type\": \"object\",\r\n            \"required\": [\"firstname\", \"lastname\", \"totalprice\", \"depositpaid\", \"bookingdates\"],\r\n            \"properties\": {\r\n                \"firstname\": { \"type\": \"string\" },\r\n                \"lastname\": { \"type\": \"string\" },\r\n                \"totalprice\": { \"type\": \"number\" },\r\n                \"depositpaid\": { \"type\": \"boolean\" },\r\n                \"bookingdates\": {\r\n                    \"type\": \"object\",\r\n                    \"required\": [\"checkin\", \"checkout\"],\r\n                    \"properties\": {\r\n                        \"checkin\": { \"type\": \"string\" },\r\n                        \"checkout\": { \"type\": \"string\" }\r\n                    }\r\n                },\r\n                \"additionalneeds\": { \"type\": \"string\" }\r\n            }\r\n        }\r\n    }\r\n};\r\n\r\n// Validate the response contract using Postman's built-in schema validator\r\npm.test(\"Response JSON schema is valid\", function () {\r\n    pm.response.to.have.jsonSchema(bookingSchema);\r\n});\r\n\r\n// --- 4. DATA EXTRACTION ---\r\n// Save the booking ID for use in subsequent requests.\r\nconst response = pm.response.json();\r\n\r\nif (response.bookingid) {\r\n    pm.environment.set(\"booking_id\", response.bookingid);\r\n    console.log(\"Booking ID saved successfully: \" + response.bookingid);\r\n}"
+                ]
               }
             }
           ],
@@ -143,8 +74,7 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
+                "value": "application/json"
               }
             ],
             "body": {
@@ -174,26 +104,10 @@
             {
               "listen": "test",
               "script": {
-                "exec": [
-                  "// 1. Validar código de estado\r",
-                  "pm.test(\"Status code es 200 - Reserva Actualizada\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "// 2. Validar que los datos cambiaron en la respuesta (Data Verification)\r",
-                  "const respuesta = pm.response.json();\r",
-                  "\r",
-                  "pm.test(\"El nombre se actualizó correctamente a 'James'\", function () {\r",
-                  "    pm.expect(respuesta.firstname).to.eql(\"James\");\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"El precio total se actualizó correctamente a 150\", function () {\r",
-                  "    pm.expect(respuesta.totalprice).to.eql(150);\r",
-                  "});"
-                ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "exec": [
+                  "// 1. STATUS CODE VALIDATION\r\npm.test(\"Status code is 200 - Booking Updated\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// 2. DATA VALIDATION\r\nconst response = pm.response.json();\r\n\r\npm.test(\"Updated booking contains the expected first name\", function () {\r\n    pm.expect(response.firstname).to.eql(\"James\");\r\n});\r\n\r\npm.test(\"Updated booking contains the expected total price\", function () {\r\n    pm.expect(response.totalprice).to.eql(150);\r\n});"
+                ]
               }
             }
           ],
@@ -202,18 +116,15 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
+                "value": "application/json"
               },
               {
                 "key": "Accept",
-                "value": "application/json",
-                "type": "text"
+                "value": "application/json"
               },
               {
                 "key": "Cookie",
-                "value": "token={{token}}",
-                "type": "text"
+                "value": "token={{token}}"
               }
             ],
             "body": {
@@ -244,20 +155,10 @@
             {
               "listen": "test",
               "script": {
-                "exec": [
-                  "// El servidor responde con 201 Created cuando el borrado es exitoso en esta API\r",
-                  "pm.test(\"Status code es 201 - Registro Eliminado\", function () {\r",
-                  "    pm.response.to.have.status(201);\r",
-                  "});\r",
-                  "\r",
-                  "// Aserción de rendimiento\r",
-                  "pm.test(\"Tiempo de respuesta menor a 800ms\", function () {\r",
-                  "    pm.expect(pm.response.responseTime).to.be.below(800);\r",
-                  "});"
-                ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "exec": [
+                  "// The API returns 201 Created when a booking is successfully deleted\r\npm.test(\"Status code is 201 - Booking Deleted\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\n// RESPONSE TIME VALIDATION\r\npm.test(\"Response time is less than 800ms\", function () {\r\n    pm.expect(pm.response.responseTime).to.be.below(800);\r\n});"
+                ]
               }
             }
           ],
@@ -266,13 +167,11 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
+                "value": "application/json"
               },
               {
                 "key": "Cookie",
-                "value": "token={{token}}",
-                "type": "text"
+                "value": "token={{token}}"
               }
             ],
             "url": {
